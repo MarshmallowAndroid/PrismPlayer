@@ -10,30 +10,6 @@ namespace PrismPlayer
     {
         static void Main(string[] args)
         {
-            //Application.Init();
-            ////Application.HeightAsBuffer = true;
-
-            //SetupMainViews();
-
-            //if (args.Length > 0 && File.Exists(args[0]))
-            //{
-            //    SetupBankPlayer(args[0], fileListView);
-
-            //    if (args.Length > 1)
-            //    {
-            //        //var bankPlayer = player as BankPlayer;
-
-            //        foreach (var bankFileInfo in bankFile.BankFileInfos)
-            //        {
-            //            if (bankFileInfo.ToString().Equals(args[1]))
-            //            {
-            //                fileListView.SelectedItem = fileListView.Source.ToList().IndexOf(bankFileInfo);
-            //                BeginPlayback(bankFileInfo);
-            //            }
-            //        }
-            //    }
-            //}
-
             Application.Init();
 
             MainView mainView;
