@@ -1,11 +1,17 @@
 ﻿using PrismPlayer.Players;
 using Terminal.Gui;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace PrismPlayer.Views
 {
     class PlayerView : View
     {
+        private const string PlayText = " ► ";
+        private const string PauseText = " ▼ ";
+        private const string PreviousText = " ◄◄ ";
+        private const string NextText = " ►► ";
+        private const string LoopOnText = " Loop: On ";
+        private const string LoopOffText = " Loop: Off ";
+
         private readonly Label _name;
         private readonly Label _elapsed;
         private readonly Label _length;
@@ -16,12 +22,12 @@ namespace PrismPlayer.Views
         private readonly Button _loop;
         private readonly TrackBarView _volume;
         private readonly Label _volumeValue;
-        private readonly Player _player;
 
-        public PlayerView(Player player)
+        private Player? _player;
+        private bool _loopSetting = true;
+
+        public PlayerView()
         {
-            _player = player;
-
             _name = new Label()
             {
                 X = Pos.Center(),
@@ -29,17 +35,6 @@ namespace PrismPlayer.Views
             };
             _elapsed = new Label();
             _length = new Label();
-
-            //var waveForm = new WaveFormView()
-            //{
-            //    //Y = 2,
-            //    Y = Pos.Center(),
-            //    Width = Dim.Fill(),
-            //    //Height = Dim.Percent(50)
-            //    Height = Dim.Percent(50)
-            //};
-
-            //playerFrame.Add(waveForm);
 
             _trackProgress = new()
             {
@@ -49,20 +44,13 @@ namespace PrismPlayer.Views
                 Y = Pos.Percent(40)
             };
 
-
             _elapsed.Y = Pos.Top(_trackProgress) - 2;
-
             _length.X = Pos.AnchorEnd();
             _length.Y = Pos.Top(_trackProgress) - 2;
 
-            _trackProgress.TrackBarChanged += (e) =>
-            {
-                player.TrackProgress = e.Value;
-            };
-
             _playPause = new Button()
             {
-                Text = "►",
+                Text = PlayText,
                 X = Pos.Center(),
                 Y = Pos.Bottom(_trackProgress) + 1,
                 NoDecorations = true,
@@ -70,20 +58,21 @@ namespace PrismPlayer.Views
             };
             _previous = new Button()
             {
-                Text = "◄◄",
+                Text = PreviousText,
                 Y = Pos.Y(_playPause),
                 NoDecorations = true,
                 HighlightStyle = HighlightStyle.None
             };
             _next = new Button()
             {
-                Text = "►►",
+                Text = NextText,
                 Y = Pos.Y(_playPause),
                 NoDecorations = true,
                 HighlightStyle = HighlightStyle.None
             };
             _loop = new Button()
             {
+                Text = " Loop:  ",
                 X = Pos.Center(),
                 Y = Pos.Bottom(_playPause) + 1,
                 NoDecorations = true,
@@ -92,35 +81,12 @@ namespace PrismPlayer.Views
 
             _previous.X = Pos.Left(_playPause) - (Pos.Right(_previous) - Pos.Left(_previous)) - 5;
             _next.X = Pos.Right(_playPause) + 5;
-            //loop.Text = player.LoopEnabled ? "Loop: On" : "Loop: Off";
-
-            _playPause.Accepting += (s, e) =>
-            {
-                player.PauseResume();
-                if (player.PlaybackState == NAudio.Wave.PlaybackState.Paused)
-                    _playPause.Text = "▼";
-                else
-                    _playPause.Text = "►";
-            };
-            _previous.Accepting += (s, e) =>
-            {
-                PreviousRequested?.Invoke();
-            };
-            _next.Accepting += (s, e) =>
-            {
-                NextRequested?.Invoke();
-            };
-            _loop.Accepting += (s, e) =>
-            {
-                player.LoopEnabled = !player.LoopEnabled;
-            };
 
             _volume = new TrackBarView()
             {
                 Width = Dim.Percent(50),
                 Height = 1,
                 X = Pos.Center(),
-                //Y = Pos.Bottom(playerFrame) - Pos.Top(playerFrame) - 6,
                 TrackBarStyle = TrackBarStyle.Filled,
                 ContinuousUpdate = true
             };
@@ -130,18 +96,7 @@ namespace PrismPlayer.Views
             };
 
             _volume.Y = Pos.Top(_volumeValue) - 2;
-            _volume.Value = player.OutputDevice?.Volume ?? 0;
-
             _volumeValue.Y = Pos.AnchorEnd() - 1;
-            _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
-
-            _volume.TrackBarChanged += (e) =>
-            {
-                if (player.OutputDevice is not null)
-                    player.OutputDevice.Volume = (float)Math.Round(e.Value, 2);
-
-                _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
-            };
 
             Add(_name);
 
@@ -157,18 +112,65 @@ namespace PrismPlayer.Views
             Add(_volume);
             Add(_volumeValue);
 
-            //playerFrame.LayoutSubviews();
-            //vuMeterFrame.LayoutSubviews();
             CanFocus = true;
-            TabStop = TabBehavior.TabGroup;
+            //TabStop = TabBehavior.TabGroup;
         }
 
         public event Action? PreviousRequested;
 
         public event Action? NextRequested;
 
+        public void Initialize(Player player)
+        {
+            _player = player;
+
+            _trackProgress.TrackBarChanged += (e) =>
+            {
+                player.TrackProgress = e.Value;
+            };
+
+            _playPause.Accepting += (s, e) =>
+            {
+                player.PauseResume();
+                if (player.PlaybackState == NAudio.Wave.PlaybackState.Paused)
+                    _playPause.Text = PauseText;
+                else
+                    _playPause.Text = PlayText;
+            };
+            _previous.Accepting += (s, e) =>
+            {
+                PreviousRequested?.Invoke();
+            };
+            _next.Accepting += (s, e) =>
+            {
+                NextRequested?.Invoke();
+            };
+            _loop.Accepting += (s, e) =>
+            {
+                player.LoopEnabled = !player.LoopEnabled;
+                _loop.Text = player.LoopEnabled ? LoopOnText : LoopOffText;
+                _loopSetting = player.LoopEnabled;
+            };
+
+            _volume.Value = player.OutputDevice?.Volume ?? 0;
+            _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
+
+            _volume.TrackBarChanged += (e) =>
+            {
+                if (player.OutputDevice is not null)
+                    player.OutputDevice.Volume = (float)Math.Round(e.Value, 2);
+
+                _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
+            };
+        }
+
         public void UpdateInfoOneShot(string name)
         {
+            if (_player is null) return;
+
+            _player.LoopEnabled = _loopSetting;
+
+            _name.Text = name;
             _name.ColorScheme = new()
             {
                 Normal = new Terminal.Gui.Attribute(Color.BrightYellow, ColorScheme?.Normal.Background ?? Color.Black)
@@ -180,6 +182,8 @@ namespace PrismPlayer.Views
             };
             _length.ColorScheme = _elapsed.ColorScheme;
 
+            _trackProgress.LoopStartValue = _player.LoopStartPercent;
+            _trackProgress.LoopEndValue = _player.LoopEndPercent;
             _trackProgress.ColorScheme = new()
             {
                 Normal = new Terminal.Gui.Attribute(Color.BrightCyan, ColorScheme?.Normal.Background ?? Color.Black)
@@ -191,6 +195,8 @@ namespace PrismPlayer.Views
             };
             _previous.ColorScheme = _playPause.ColorScheme;
             _next.ColorScheme = _playPause.ColorScheme;
+
+            _loop.Text = _player.LoopEnabled ? LoopOnText : LoopOffText;
             _loop.ColorScheme = _playPause.ColorScheme;
 
             _volume.ColorScheme = new()
@@ -201,14 +207,12 @@ namespace PrismPlayer.Views
             {
                 Normal = new Terminal.Gui.Attribute(Color.Gray, ColorScheme?.Normal.Background ?? Color.Black)
             };
-
-            _name.Text = name;
-            _trackProgress.LoopStartValue = _player.LoopStartPercent;
-            _trackProgress.LoopEndValue = _player.LoopEndPercent;
         }
 
         public void UpdateInfo()
         {
+            if (_player is null) return;
+
             if (_player.AudioFormat is not null)
             {
                 long positionSamples = _player.Position / _player.AudioFormat.BlockAlign;
@@ -219,8 +223,6 @@ namespace PrismPlayer.Views
             }
 
             _trackProgress.Value = _player.TrackProgress;
-
-            _loop.Text = _player.LoopEnabled ? "Loop: On" : "Loop: Off";
 
             _volume.Value = _player.OutputDevice?.Volume ?? 0;
             _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";

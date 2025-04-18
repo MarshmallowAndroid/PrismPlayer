@@ -8,14 +8,13 @@ namespace PrismPlayer.Views
     class MainView : Toplevel
     {
         private readonly ListView _fileListView;
-        private readonly View _playerContainer;
         private readonly Timer _updateTimer;
 
         private string _lastPath = "";
 
         private BankFile? _bankFile;
         private Player? _player;
-        private PlayerView? _playerView;
+        private PlayerView _playerView;
 
         public MainView()
         {
@@ -30,10 +29,10 @@ namespace PrismPlayer.Views
 
             _fileListView.VerticalScrollBar.AutoShow = true;
 
-            _playerContainer = new()
+            _playerView = new()
             {
-                X = Pos.Right(_fileListView) - 1,
-                Y = 1,
+                X = Pos.Right(_fileListView),
+                Y = Pos.Center() + 1,
                 Width = Dim.Fill(7),
                 Height = Dim.Fill(),
                 CanFocus = true,
@@ -41,8 +40,8 @@ namespace PrismPlayer.Views
                 SuperViewRendersLineCanvas = true
             };
 
-            if (_playerContainer.Margin is not null)
-                _playerContainer.Margin.Thickness = new Thickness(4);
+            //if (_playerView.Margin is not null)
+            //    _playerView.Margin.Thickness = new Thickness(4);
 
             //_playerFrame.Padding = new Thickness(4);
 
@@ -50,7 +49,8 @@ namespace PrismPlayer.Views
             {
                 Y = 1,
                 Width = 7,
-                BorderStyle = LineStyle.RoundedDashed
+                BorderStyle = LineStyle.RoundedDashed,
+                TabStop = TabBehavior.NoStop
             };
 
             var vuMeter = new PeakMeterView()
@@ -61,7 +61,7 @@ namespace PrismPlayer.Views
 
             vuMeterFrame.Add(vuMeter);
             vuMeterFrame.Height = Dim.Fill();
-            vuMeterFrame.X = Pos.Right(_playerContainer);
+            vuMeterFrame.X = Pos.AnchorEnd();
             //vuMeterFrame.BorderStyle = LineStyle.None;
 
             _fileListView.OpenSelectedItem += (s, e) =>
@@ -86,12 +86,15 @@ namespace PrismPlayer.Views
 
                             Application.Run(openDialog);
 
-                            string bankFilePath = openDialog.FilePaths[0].ToString() ?? "";
-                            if (!openDialog.Canceled && File.Exists(bankFilePath))
+                            openDialog.Accepting += (s, e) =>
                             {
-                                InitializePlayer(bankFilePath);
-                            }
-                            _lastPath = openDialog.Path.ToString() ?? "";
+                                string bankFilePath = openDialog.FilePaths[0].ToString() ?? "";
+
+                                if (File.Exists(bankFilePath))
+                                    InitializePlayer(bankFilePath);
+                                
+                                _lastPath = openDialog.Path.ToString() ?? "";
+                            };
                         }),
                         null!,
                         new MenuItem("Quit", "", () =>
@@ -104,7 +107,7 @@ namespace PrismPlayer.Views
                 ]
             };
 
-            Add(menu, _fileListView, _playerContainer, vuMeterFrame);
+            Add(menu, _fileListView, _playerView, vuMeterFrame);
 
             _updateTimer = new Timer((s) =>
             {
@@ -116,15 +119,6 @@ namespace PrismPlayer.Views
 
                     vuMeter.LeftValue = _player.LeftSampleAverage * 4.0f;
                     vuMeter.RightValue = _player.RightSampleAverage * 4.0f;
-
-                    //if (_player.MonitorWaveStream?.MonitoredSampleProvider.Buffer is not null)
-                    //{
-                    //    //waveForm.SubmitSamples(player.MonitorWaveStream.MonitoredSampleProvider.Buffer);
-                    //    //waveForm.Samples = player.Monitor.MonitorSampleProvider.Buffer;
-                    //}
-
-                    //waveForm.ProgressValue = trackProgress.Value;
-                    //vuMeter.Update();
                 });
             }, null, System.Threading.Timeout.Infinite, 16);
         }
@@ -156,9 +150,9 @@ namespace PrismPlayer.Views
 
                 if (_bankFile is null)
                 {
-                    MessageBox.Query(
+                    MessageBox.ErrorQuery(
                         "Not a valid bank file",
-                        "\n Please select a valid Yawaraka Engine (Soft Engine) \n or Katana Engine bank file. \n", "OK");
+                        "\n Please select a valid Yawaraka Engine (Soft Engine) \n or Katana Engine bank file. \n\n", "OK");
                     return;
                 }
             }
@@ -170,11 +164,7 @@ namespace PrismPlayer.Views
             _fileListView.SetSource([.. _bankFile.Subfiles]);
             _player?.Dispose();
             _player = new BankPlayer(_bankFile);
-            _playerView = new PlayerView(_player)
-            {
-                Width = Dim.Fill(),
-                Height = Dim.Fill()
-            };
+            _playerView.Initialize(_player);
             _playerView.PreviousRequested += () =>
             {
                 if (_fileListView.SelectedItem - 1 < 0)
@@ -193,8 +183,6 @@ namespace PrismPlayer.Views
 
                 SelectItem(_fileListView.SelectedItem);
             };
-            _playerContainer.ClearViewport();
-            _playerContainer.Add(_playerView);
             _updateTimer.Change(0, 33);
         }
     }
