@@ -40,6 +40,25 @@ namespace PrismPlayer.Views
                 SuperViewRendersLineCanvas = true
             };
 
+            _playerView.PreviousRequested += () =>
+            {
+                if (_fileListView.SelectedItem - 1 < 0)
+                    _fileListView.SelectedItem = _fileListView.Source.Count - 1;
+                else
+                    _fileListView.SelectedItem--;
+
+                SelectItem(_fileListView.SelectedItem);
+            };
+            _playerView.NextRequested += () =>
+            {
+                if (_fileListView.SelectedItem + 1 >= _fileListView.Source.Count)
+                    _fileListView.SelectedItem = 0;
+                else
+                    _fileListView.SelectedItem++;
+
+                SelectItem(_fileListView.SelectedItem);
+            };
+
             //if (_playerView.Margin is not null)
             //    _playerView.Margin.Thickness = new Thickness(4);
 
@@ -146,6 +165,8 @@ namespace PrismPlayer.Views
 
         private void InitializePlayer(string path)
         {
+            _player?.Dispose();
+            _bankFile?.Dispose();
             try
             {
                 _bankFile = BankFileDetector.DetectBankFile(File.OpenRead(path));
@@ -164,27 +185,8 @@ namespace PrismPlayer.Views
                 return;
             }
             _fileListView.SetSource([.. _bankFile.Subfiles]);
-            _player?.Dispose();
             _player = new BankPlayer(_bankFile);
             _playerView.Initialize(_player);
-            _playerView.PreviousRequested += () =>
-            {
-                if (_fileListView.SelectedItem - 1 < 0)
-                    _fileListView.SelectedItem = _fileListView.Source.Count - 1;
-                else
-                    _fileListView.SelectedItem--;
-
-                SelectItem(_fileListView.SelectedItem);
-            };
-            _playerView.NextRequested += () =>
-            {
-                if (_fileListView.SelectedItem + 1 >= _fileListView.Source.Count)
-                    _fileListView.SelectedItem = 0;
-                else
-                    _fileListView.SelectedItem++;
-
-                SelectItem(_fileListView.SelectedItem);
-            };
             _updateTimer.Change(0, 33);
         }
     }

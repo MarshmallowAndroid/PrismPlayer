@@ -48,6 +48,13 @@ namespace PrismPlayer.Views
             _length.X = Pos.AnchorEnd();
             _length.Y = Pos.Top(_trackProgress) - 2;
 
+            _trackProgress.TrackBarChanged += (e) =>
+            {
+                if (_player is null) return;
+
+                _player.TrackProgress = e.Value;
+            };
+
             _playPause = new Button()
             {
                 Text = PlayText,
@@ -82,6 +89,33 @@ namespace PrismPlayer.Views
             _previous.X = Pos.Left(_playPause) - (Pos.Right(_previous) - Pos.Left(_previous)) - 5;
             _next.X = Pos.Right(_playPause) + 5;
 
+            _playPause.Accepting += (s, e) =>
+            {
+                if (_player is null) return;
+
+                _player.PauseResume();
+                if (_player.PlaybackState == NAudio.Wave.PlaybackState.Paused)
+                    _playPause.Text = PauseText;
+                else
+                    _playPause.Text = PlayText;
+            };
+            _previous.Accepting += (s, e) =>
+            {
+                PreviousRequested?.Invoke();
+            };
+            _next.Accepting += (s, e) =>
+            {
+                NextRequested?.Invoke();
+            };
+            _loop.Accepting += (s, e) =>
+            {
+                if (_player is null) return;
+
+                _player.LoopEnabled = !_player.LoopEnabled;
+                _loop.Text = _player.LoopEnabled ? LoopOnText : LoopOffText;
+                _loopSetting = _player.LoopEnabled;
+            };
+
             _volume = new TrackBarView()
             {
                 Width = Dim.Percent(50),
@@ -97,6 +131,14 @@ namespace PrismPlayer.Views
 
             _volume.Y = Pos.Top(_volumeValue) - 2;
             _volumeValue.Y = Pos.AnchorEnd() - 1;
+
+            _volume.TrackBarChanged += (e) =>
+            {
+                if (_player?.OutputDevice is not null)
+                    _player.OutputDevice.Volume = (float)Math.Round(e.Value, 2);
+
+                _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
+            };
 
             Add(_name);
 
@@ -124,44 +166,17 @@ namespace PrismPlayer.Views
         {
             _player = player;
 
-            _trackProgress.TrackBarChanged += (e) =>
-            {
-                player.TrackProgress = e.Value;
-            };
+            _name.Text = "";
 
-            _playPause.Accepting += (s, e) =>
-            {
-                player.PauseResume();
-                if (player.PlaybackState == NAudio.Wave.PlaybackState.Paused)
-                    _playPause.Text = PauseText;
-                else
-                    _playPause.Text = PlayText;
-            };
-            _previous.Accepting += (s, e) =>
-            {
-                PreviousRequested?.Invoke();
-            };
-            _next.Accepting += (s, e) =>
-            {
-                NextRequested?.Invoke();
-            };
-            _loop.Accepting += (s, e) =>
-            {
-                player.LoopEnabled = !player.LoopEnabled;
-                _loop.Text = player.LoopEnabled ? LoopOnText : LoopOffText;
-                _loopSetting = player.LoopEnabled;
-            };
+            _elapsed.Text = GetTimeStringFromSamples(0);
+            _length.Text = GetTimeStringFromSamples(0);
 
-            _volume.Value = player.OutputDevice?.Volume ?? 0;
+            _trackProgress.Value = 0f;
+            _trackProgress.LoopStartValue = 0f;
+            _trackProgress.LoopEndValue = 0f;
+
+            _volume.Value = _player.OutputDevice?.Volume ?? 0;
             _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
-
-            _volume.TrackBarChanged += (e) =>
-            {
-                if (player.OutputDevice is not null)
-                    player.OutputDevice.Volume = (float)Math.Round(e.Value, 2);
-
-                _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
-            };
         }
 
         public void UpdateInfoOneShot(string name)
@@ -216,16 +231,24 @@ namespace PrismPlayer.Views
             if (_player.AudioFormat is not null)
             {
                 long positionSamples = _player.Position / _player.AudioFormat.BlockAlign;
-                _elapsed.Text = string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(positionSamples / _player.AudioFormat.SampleRate));
+                _elapsed.Text = GetTimeStringFromSamples(positionSamples);
 
                 long lengthSamples = _player.Length / _player.AudioFormat.BlockAlign;
-                _length.Text = string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(lengthSamples / _player.AudioFormat.SampleRate));
+                _length.Text = GetTimeStringFromSamples(lengthSamples);
             }
 
             _trackProgress.Value = _player.TrackProgress;
 
             _volume.Value = _player.OutputDevice?.Volume ?? 0;
             _volumeValue.Text = ((int)Math.Round(_volume.Value * 100)).ToString() + "%";
+        }
+
+        private string GetTimeStringFromSamples(long value)
+        {
+            if (_player?.AudioFormat is not null)
+                return string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(value / _player.AudioFormat.SampleRate));
+            else
+                return string.Format("{0:mm\\:ss}", TimeSpan.FromSeconds(0));
         }
     }
 }
