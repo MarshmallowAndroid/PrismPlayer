@@ -72,8 +72,7 @@
         /// <returns>The raw audio file stream.</returns>
         public virtual Stream GetRawStream(Subfile subfile)
         {
-            // We subtract the length of the subfile header
-            return new IsolatedStream(_bankFileStream, subfile.Offset, subfile.Length - 0x20);
+            return new IsolatedStream(_bankFileStream, subfile.Offset, subfile.Length);
         }
 
         /// <summary>
@@ -91,6 +90,7 @@
         public void Dispose()
         {
             _bankFileStream.Dispose();
+            GC.SuppressFinalize(this);
         }
     }
 }
