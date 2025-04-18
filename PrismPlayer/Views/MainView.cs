@@ -113,6 +113,7 @@ namespace PrismPlayer.Views
             _updateTimer = new Timer((s) =>
             {
                 if (_player is null || _playerView is null) return;
+                if (_player.PlaybackState != NAudio.Wave.PlaybackState.Playing) return;
 
                 Application.Invoke(() =>
                 {
