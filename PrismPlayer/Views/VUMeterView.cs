@@ -3,7 +3,7 @@ using Attribute = Terminal.Gui.Attribute;
 
 namespace PrismPlayer.Views
 {
-    public class PeakMeterView : View
+    public class VUMeterView : View
     {
         private float _leftValue;
         private float _rightValue;
@@ -12,7 +12,7 @@ namespace PrismPlayer.Views
 
         private Gradient _gradient;
 
-        public PeakMeterView()
+        public VUMeterView()
         {
             _leftValue = 0;
             _rightValue = 0;
@@ -40,6 +40,8 @@ namespace PrismPlayer.Views
                 SetNeedsDraw();
             }
         }
+
+        public bool BackgroundEnabled { get; set; } = false;
 
         protected override bool OnDrawingContent()
         {
@@ -85,10 +87,12 @@ namespace PrismPlayer.Views
             driver.AddStr("\u2588\u2588");
         }
 
-        private static void DrawOff(IConsoleDriver driver)
+        private void DrawOff(IConsoleDriver driver)
         {
-            //driver.AddStr("  ");
-            driver.AddStr("\u2591\u2591");
+            if (BackgroundEnabled)
+                driver.AddStr("\u2591\u2591");
+            else
+                driver.AddStr("  ");
         }
 
         protected override void OnSubViewLayout(LayoutEventArgs args)

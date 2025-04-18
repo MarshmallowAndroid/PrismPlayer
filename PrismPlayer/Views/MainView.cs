@@ -53,7 +53,7 @@ namespace PrismPlayer.Views
                 TabStop = TabBehavior.NoStop
             };
 
-            var vuMeter = new PeakMeterView()
+            var vuMeter = new VUMeterView()
             {
                 Width = Dim.Fill(),
                 Height = Dim.Fill(),
