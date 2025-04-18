@@ -51,7 +51,7 @@ namespace PrismPlayer
 
             Application.Run(mainView, (e) =>
             {
-                MessageBox.ErrorQuery("Exception", e.Message, "OK");
+                MessageBox.ErrorQuery("Exception", $"\n {e.Message} \n\n", "OK");
                 return true;
             });
 
