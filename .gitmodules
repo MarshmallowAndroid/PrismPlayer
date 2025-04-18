@@ -1,0 +1,3 @@
+[submodule "ThirdParty/NAudio.VorbisPizza"]
+	path = ThirdParty/NAudio.VorbisPizza
+	url = https://github.com/MarshmallowAndroid/NAudio.VorbisPizza
