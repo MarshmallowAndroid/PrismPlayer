@@ -1,0 +1,16 @@
+{
+  "profiles": {
+    "VVP": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Venus Vacation PRISM - DEAD OR ALIVE Xtreme -\\fdata_package\\data\\0x272c6efb.file\""
+    },
+    "XVV": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\DOAX-VenusVacation\\DX11_global_data\\COMMON\\b3c5a6c36e6b29127ab013fffe1d3d784198af2fc3e01f5274762f71fcedc8ea\""
+    },
+    "DOA6": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Dead or Alive 6\\data\\0x272c6efb.file\""
+    }
+  }
+}
