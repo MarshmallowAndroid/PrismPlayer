@@ -5,40 +5,38 @@ namespace Common.Audio
 {
     public class LoopWaveStream : WaveStream
     {
-        private readonly WaveStream sourceStream;
+        private readonly WaveStream _source;
 
-        private readonly long loopStart;
-        private readonly long loopEnd;
-        private readonly int loopCount;
+        private readonly long _loopStart;
+        private readonly long _loopEnd;
 
         private readonly object streamLock = new();
 
         private int remainingLoops;
 
-        public LoopWaveStream(WaveStream waveStream, long loopStart, long loopEnd, int loopCount = -1)
+        public LoopWaveStream(WaveStream source, long loopStart, long loopEnd, int loopCount = -1)
         {
-            sourceStream = waveStream;
+            _source = source;
 
             // Convert samples to bytes
-            this.loopStart = loopStart * WaveFormat.BlockAlign;
-            this.loopEnd = loopEnd * WaveFormat.BlockAlign;
+            _loopStart = loopStart * WaveFormat.BlockAlign;
+            _loopEnd = loopEnd * WaveFormat.BlockAlign;
 
-            if (this.loopStart < 0) this.loopStart = 0;
-            if (this.loopEnd <= 0) this.loopEnd = Length;
+            if (_loopStart < 0) _loopStart = 0;
+            if (_loopEnd <= 0) _loopEnd = Length;
 
-            this.loopCount = loopCount;
             remainingLoops = loopCount;
         }
 
         public bool Loop { get; set; } = true;
 
-        public long LoopStartSamples => loopStart / WaveFormat.BlockAlign;
+        public long LoopStartSamples => _loopStart / WaveFormat.BlockAlign;
 
-        public long LoopEndSamples => loopEnd / WaveFormat.BlockAlign;
+        public long LoopEndSamples => _loopEnd / WaveFormat.BlockAlign;
 
-        public override WaveFormat WaveFormat => sourceStream.WaveFormat;
+        public override WaveFormat WaveFormat => _source.WaveFormat;
 
-        public override long Length => sourceStream.Length;
+        public override long Length => _source.Length;
 
         public override long Position
         {
@@ -46,14 +44,14 @@ namespace Common.Audio
             {
                 lock (streamLock)
                 {
-                    return sourceStream.Position;
+                    return _source.Position;
                 }
             }
             set
             {
                 lock (streamLock)
                 {
-                    sourceStream.Position = value;
+                    _source.Position = value;
                 }
             }
         }
@@ -61,26 +59,26 @@ namespace Common.Audio
         public override int Read(byte[] buffer, int offset, int count)
         {
             int totalBytesRead = 0;
-            int advanced = (int)(sourceStream.Position + count); // Get read-ahead position
+            int advanced = (int)(_source.Position + count); // Get read-ahead position
 
             // Keep on reading until the appropriate byte count has been read
             while (totalBytesRead < count)
             {
                 // Check if next position passes over the end position
-                if (advanced > loopEnd && Loop)
+                if (advanced > _loopEnd && Loop)
                 {
                     // Edge case
-                    if (loopEnd > loopStart)
+                    if (_loopEnd > _loopStart)
                     {
                         // Get remaining bytes between the current position and the loop end
-                        int byteDifference = (int)(loopEnd - sourceStream.Position);
+                        int byteDifference = (int)(_loopEnd - _source.Position);
 
                         // Read the remaining bytes into the buffer
                         if (byteDifference > 0)
                         {
                             lock (streamLock)
                             {
-                                totalBytesRead += sourceStream.Read(buffer, offset, byteDifference);
+                                totalBytesRead += _source.Read(buffer, offset, byteDifference);
                             }
                         }
 
@@ -89,7 +87,7 @@ namespace Common.Audio
                         if (remainingLoops > 0) remainingLoops--;
 
                         // Set position back to the beginning
-                        sourceStream.Position = loopStart;
+                        _source.Position = _loopStart;
 
                         //Console.WriteLine("Loop triggered. Read remaining " + byteDifference + " bytes.");
                     }
@@ -99,7 +97,7 @@ namespace Common.Audio
                 int bytesRead = 0;
                 lock (streamLock)
                 {
-                    bytesRead = sourceStream.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
+                    bytesRead = _source.Read(buffer, offset + totalBytesRead, count - totalBytesRead);
                 }
 
                 // No bytes read means we reached end of stream
@@ -112,7 +110,7 @@ namespace Common.Audio
                         if (remainingLoops == 0) return totalBytesRead;
                         if (remainingLoops > 0) remainingLoops--;
 
-                        sourceStream.Position = loopStart;
+                        _source.Position = _loopStart;
                     }
                     else
                     {

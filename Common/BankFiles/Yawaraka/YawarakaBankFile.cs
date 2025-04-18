@@ -1,10 +1,11 @@
 ﻿namespace Common.BankFiles.Yawaraka
 {
     /// <summary>
-    /// Yawaraka Engine (Soft Engine) bank file reader.
+    /// Yawaraka Engine (Soft Engine) bank file reader. Subfiles are named according to index.
     /// </summary>
     public sealed class YawarakaBankFile : BankFile
     {
+        /// <inheritdoc/>
         public YawarakaBankFile(Stream bankFileStream) : base(bankFileStream)
         {
             BinaryReader reader = new(bankFileStream);
@@ -35,7 +36,7 @@
                 else
                     length = fileSize - offsets[i];
 
-                Subfiles[i] = new Subfile($"0x{offsets[i]:x8}", offsets[i], length);
+                Subfiles[i] = new Subfile($"0x{i:x8}", offsets[i], length);
             }
         }
 

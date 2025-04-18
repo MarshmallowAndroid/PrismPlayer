@@ -4,6 +4,9 @@ using System.Threading;
 
 namespace Common.Audio
 {
+    /// <summary>
+    /// Sample provider that monitors the average value of the left and right channels.
+    /// </summary>
     public class MonitoredSampleProvider : ISampleProvider
     {
         private readonly ISampleProvider _sampleProvider;
@@ -15,12 +18,6 @@ namespace Common.Audio
             _sampleProvider = sampleProvider;
             _channels = _sampleProvider.WaveFormat.Channels;
             _channelSamples = new float[_channels];
-
-            //if (sampleProvider.WaveFormat.Channels != 2)
-            //{
-            //    throw new ArgumentException(
-            //        $"Only stereo channels are supported.\n\nChannel count: {sampleProvider.WaveFormat.Channels}");
-            //}
         }
 
         public float LeftSampleAverage { get; private set; }

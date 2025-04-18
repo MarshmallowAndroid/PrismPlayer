@@ -8,9 +8,13 @@ using System.Threading.Tasks;
 
 namespace Common.BankFiles.Katana
 {
-    public class PrismDecryptStream(Stream sourceStream) : Stream
+    /// <summary>
+    /// Stream for decrypting bytes from Venus Vacation PRISM.
+    /// </summary>
+    /// <param name="source"></param>
+    public class PrismDecryptStream(Stream source) : Stream
     {
-        private static readonly uint[] keyTable =
+        private static readonly uint[] s_keyTable =
         {
             0x588a97bd, 0x32dfcea2, 0x7c4d2c9c, 0xacd75df1, 0xb37ee965, 0x72a28d15, 0xbac10f51, 0x4fdfaf1d, 0x16102ff6, 0xcda6bcf3, 0xc96870c8, 0x620d13c0,
             0xa50e2260, 0xb25430cf, 0x712fe957, 0x3f395277, 0x043739c6, 0xd02ccd03, 0x68ed968e, 0xc450dbe2, 0x3fe17238, 0x9ae4d6a2, 0xc8fe91ae, 0x2423585a,
@@ -101,25 +105,25 @@ namespace Common.BankFiles.Katana
             0xa858efa3, 0x416ef978, 0x02aa527f, 0xff19c55d, 0x362693da, 0xb665c6f5, 0x3b13bf14, 0xba84339b, 0x9e15a573, 0x1dc0cb25, 0x00000000, 0x00000000
         };
 
-        private byte[]? extraBuffer;
+        private byte[]? _extraBuffer;
 
-        public override bool CanRead => sourceStream.CanRead;
+        public override bool CanRead => source.CanRead;
 
-        public override bool CanSeek => sourceStream.CanSeek;
+        public override bool CanSeek => source.CanSeek;
 
-        public override bool CanWrite => sourceStream.CanWrite;
+        public override bool CanWrite => source.CanWrite;
 
-        public override long Length => sourceStream.Length;
+        public override long Length => source.Length;
 
         public override long Position
         {
-            get { lock (sourceStream) { return sourceStream.Position; } }
-            set { lock (sourceStream) { sourceStream.Position = value; } }
+            get { lock (source) { return source.Position; } }
+            set { lock (source) { source.Position = value; } }
         }
 
         public override void Flush()
         {
-            sourceStream.Flush();
+            source.Flush();
         }
 
         public override int Read(byte[] buffer, int offset, int count)
@@ -131,14 +135,12 @@ namespace Common.BankFiles.Katana
             int countPadding = (8 - (count + positionAlign) % 8) % 8; // New 8-byte-aligned padding for count
 
             int read;
-            if (positionAlign <= 0)
+            if (positionAlign <= 0) // Straightforward branch for 8-byte-aligned positions
             {
-                // Straightforward branch for 8-byte-aligned positions
-
-                lock (sourceStream)
+                lock (source)
                 {
                     // Read the 8-byte-aligned count
-                    read = sourceStream.Read(buffer, offset, count + countPadding);
+                    read = source.Read(buffer, offset, count + countPadding);
 
                     // Base stream expects us to be at count - countPadding
                     Position -= countPadding;
@@ -154,31 +156,31 @@ namespace Common.BankFiles.Katana
             {
                 // Extra buffer to store aligned data for decryption
                 int neededBytes = positionAlign + count + countPadding;
-                extraBuffer = EnsureBuffer(extraBuffer, neededBytes);
+                _extraBuffer = EnsureBuffer(_extraBuffer, neededBytes);
 
-                lock (sourceStream)
+                lock (source)
                 {
                     // Align position before reading
-                    sourceStream.Position -= positionAlign;
+                    source.Position -= positionAlign;
 
                     // Read for the entire extra buffer
-                    read = sourceStream.Read(extraBuffer, offset, neededBytes);
+                    read = source.Read(_extraBuffer, offset, neededBytes);
 
                     // Base stream expects us to be at count - countPadding
                     //
                     // The reasoning between only needing to subtract countPadding here is that
                     // the data needed falls between positionAlign and positionAlign + count,
                     // and countPadding is the extra bytes
-                    sourceStream.Position -= countPadding;
+                    source.Position -= countPadding;
                 }
 
                 // Decrypt the data
-                Decrypt(extraBuffer, offset, extraBuffer.Length);
+                Decrypt(_extraBuffer, offset, _extraBuffer.Length);
 
                 // Transfer only the expected required data to the main buffer
                 for (int i = 0; i < count; i++)
                 {
-                    buffer[i] = extraBuffer[i + positionAlign];
+                    buffer[i] = _extraBuffer[i + positionAlign];
                 }
 
                 // Pretend we didn't do any of the stuff above
@@ -191,17 +193,17 @@ namespace Common.BankFiles.Katana
 
         public override long Seek(long offset, SeekOrigin origin)
         {
-            lock (sourceStream)
+            lock (source)
             {
-                return sourceStream.Seek(offset, origin);
+                return source.Seek(offset, origin);
             }
         }
 
         public override void SetLength(long value)
         {
-            lock (sourceStream)
+            lock (source)
             {
-                sourceStream.SetLength(value);
+                source.SetLength(value);
             }
         }
 
@@ -210,7 +212,7 @@ namespace Common.BankFiles.Katana
             throw new NotImplementedException();
         }
 
-        private byte[] EnsureBuffer(byte[]? buffer, int length)
+        private static byte[] EnsureBuffer(byte[]? buffer, int length)
          {
             if (buffer?.Length < length || buffer is null)
             {
@@ -220,7 +222,7 @@ namespace Common.BankFiles.Katana
             return buffer;
         }
 
-        private int Decrypt(byte[] buffer, int offset, int length)
+        private static int Decrypt(byte[] buffer, int offset, int length)
         {
             if (length <= 0) return 0;
 
@@ -237,7 +239,7 @@ namespace Common.BankFiles.Katana
             return length >> 3 << 3;
         }
 
-        private void Decrypt8Bytes(byte[] buffer, int offset)
+        private static void Decrypt8Bytes(byte[] buffer, int offset)
         {
             uint a = (uint)(
                 buffer[offset + 0] << 0x18 |
@@ -250,23 +252,23 @@ namespace Common.BankFiles.Katana
                 buffer[offset + 6] << 0x08 |
                 buffer[offset + 7] << 0x00);
 
-            a ^= keyTable[0x11];
+            a ^= s_keyTable[0x11];
             for (int i = 0x10; i > 0x0; i--)
             {
                 uint target = i % 2 == 0 ? a : b;
                 uint value = (
-                    keyTable[(target >> 0x18 & 0xFF) + 0x012] +
-                    keyTable[(target >> 0x10 & 0xFF) + 0x112] ^
-                    keyTable[(target >> 0x08 & 0xFF) + 0x212]) +
-                    keyTable[(target >> 0x00 & 0xFF) + 0x312] ^
-                    keyTable[i];
+                    s_keyTable[(target >> 0x18 & 0xFF) + 0x012] +
+                    s_keyTable[(target >> 0x10 & 0xFF) + 0x112] ^
+                    s_keyTable[(target >> 0x08 & 0xFF) + 0x212]) +
+                    s_keyTable[(target >> 0x00 & 0xFF) + 0x312] ^
+                    s_keyTable[i];
 
                 if (i % 2 == 0)
                     b ^= value;
                 else
                     a ^= value;
             }
-            b ^= keyTable[0x00];
+            b ^= s_keyTable[0x00];
 
             buffer[offset + 0] = (byte)(b >> 0x18);
             buffer[offset + 1] = (byte)(b >> 0x10);

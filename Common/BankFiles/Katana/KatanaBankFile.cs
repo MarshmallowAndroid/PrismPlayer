@@ -1,7 +1,7 @@
 ﻿namespace Common.BankFiles.Katana
 {
     /// <summary>
-    /// Katana Engine bank file reader.
+    /// Katana Engine bank file reader. Subfiles are named according to an internal value.
     /// </summary>
     public sealed class KatanaBankFile : BankFile
     {
@@ -39,10 +39,10 @@
                 uint dataLength = reader.ReadUInt32();
                 uint unk3 = reader.ReadUInt32(); // Might be the internal name for the file
                 uint headerLength = reader.ReadUInt32();
-                uint unk5 = reader.ReadUInt32(); // At least 0x20 byte difference from dataLength, must be unaligned length
+                uint unk5 = reader.ReadUInt32(); // At least 32 byte difference from dataLength, must be unaligned length with header
                 reader.BaseStream.Position += 0x0c;
 
-                bankFileInfos.Add(new($"0x{unk3:x8}", reader.BaseStream.Position, dataLength));
+                bankFileInfos.Add(new($"0x{unk3:x8}", reader.BaseStream.Position, dataLength - 0x20));
 
                 reader.BaseStream.Position += dataLength - 0x20;
 

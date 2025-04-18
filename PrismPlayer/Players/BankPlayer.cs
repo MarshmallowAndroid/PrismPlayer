@@ -50,8 +50,6 @@ namespace PrismPlayer.Players
         public void SetBankFileInfo(Subfile bankFileInfo)
         {
             base.Dispose();
-
-            MonitoredWaveStream?.Dispose();
             _waveStream?.Dispose();
 
             _currentBankFileInfo = bankFileInfo;
@@ -81,7 +79,7 @@ namespace PrismPlayer.Players
             //}
 
             _waveStream = _loopWaveStream = new LoopWaveStream(new VorbisWaveReader(oggStream), loopPoint, 0);
-            MonitoredWaveStream = new MonitoredWaveStream(_waveStream);
+            _monitoredSampleProvider = new MonitoredSampleProvider(_waveStream.ToSampleProvider());
         }
 
         public override void Play()
@@ -90,16 +88,16 @@ namespace PrismPlayer.Players
 
             OutputDevice = new WasapiOut();
 
-            if (MonitoredWaveStream is null) return;
+            if (_monitoredSampleProvider is null) return;
 
-            if (MonitoredWaveStream.WaveFormat.Channels > OutputDevice.OutputWaveFormat.Channels)
+            if (_monitoredSampleProvider.WaveFormat.Channels > OutputDevice.OutputWaveFormat.Channels)
                 OutputDevice.Init(
                     new ResamplerDmoStream(
-                        MonitoredWaveStream,
+                        _monitoredSampleProvider.ToWaveProvider(),
                         WaveFormat.CreateIeeeFloatWaveFormat(
-                            MonitoredWaveStream.WaveFormat.SampleRate, OutputDevice.OutputWaveFormat.Channels)));
+                            _monitoredSampleProvider.WaveFormat.SampleRate, OutputDevice.OutputWaveFormat.Channels)));
             else
-                OutputDevice.Init(MonitoredWaveStream);
+                OutputDevice.Init(_monitoredSampleProvider);
 
 
             OutputDevice.Play();

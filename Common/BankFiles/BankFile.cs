@@ -1,7 +1,7 @@
 ﻿namespace Common.BankFiles
 {
     /// <summary>
-    /// Interface for bank file reader implementations.
+    /// Abstract class for bank file reader implementations.
     /// </summary>
     public abstract class BankFile : IDisposable
     {

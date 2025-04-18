@@ -13,10 +13,10 @@ namespace PrismPlayer.Players
         {
             _waveStream = new MediaFoundationReader(filePath);
 
-            MonitoredWaveStream = new(_waveStream);
+            _monitoredSampleProvider = new(_waveStream.ToSampleProvider());
 
             OutputDevice = new WasapiOut();
-            OutputDevice.Init(MonitoredWaveStream);
+            OutputDevice.Init(_monitoredSampleProvider);
         }
 
         public override bool LoopEnabled { get; set; } = false;

@@ -6,8 +6,7 @@ namespace PrismPlayer.Players
     public abstract class Player : IDisposable
     {
         protected WaveStream? _waveStream;
-
-        public MonitoredWaveStream? MonitoredWaveStream { get; protected set; }
+        protected MonitoredSampleProvider? _monitoredSampleProvider;
 
         public WaveFormat? AudioFormat => _waveStream?.WaveFormat;
 
@@ -52,9 +51,9 @@ namespace PrismPlayer.Players
 
         public abstract float LoopEndPercent { get; }
 
-        public float LeftSampleAverage => MonitoredWaveStream?.MonitoredSampleProvider.LeftSampleAverage ?? 0;
+        public float LeftSampleAverage => _monitoredSampleProvider?.LeftSampleAverage ?? 0;
 
-        public float RightSampleAverage => MonitoredWaveStream?.MonitoredSampleProvider.RightSampleAverage ?? 0;
+        public float RightSampleAverage => _monitoredSampleProvider?.RightSampleAverage ?? 0;
 
         public virtual void Play() => OutputDevice?.Play();
 
