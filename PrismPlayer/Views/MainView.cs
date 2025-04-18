@@ -73,31 +73,32 @@ namespace PrismPlayer.Views
             {
                 Menus =
                 [
-                    new MenuBarItem("File",
+                    new MenuBarItem("_File",
                     [
-                        new MenuItem("Open bank file...", "", () =>
+                        new MenuItem("_Open bank file...", "", () =>
                         {
-                            OpenDialog openDialog = new()
+                            FileDialog fileDialog = new()
                             {
                                 Title = "Open bank file...",
-                                Text = "Select a Yawaraka Engine (Soft Engine) or Katana Engine bank file"
+                                Text = "Select a Yawaraka Engine (Soft Engine) or Katana Engine bank file",
+                                OpenMode = OpenMode.File
                             };
-                            if (_lastPath != string.Empty) openDialog.Path  = _lastPath;
+                            if (_lastPath != string.Empty) fileDialog.Path  = _lastPath;
 
-                            Application.Run(openDialog);
+                            Application.Run(fileDialog);
 
-                            openDialog.Accepting += (s, e) =>
+                            if (fileDialog.Path != _lastPath)
                             {
-                                string bankFilePath = openDialog.FilePaths[0].ToString() ?? "";
+                                string bankFilePath = fileDialog.Path ?? "";
 
                                 if (File.Exists(bankFilePath))
                                     InitializePlayer(bankFilePath);
-                                
-                                _lastPath = openDialog.Path.ToString() ?? "";
-                            };
+
+                                _lastPath = fileDialog.Path ?? "";
+                            }
                         }),
                         null!,
-                        new MenuItem("Quit", "", () =>
+                        new MenuItem("_Quit", "", () =>
                         {
                             _player?.Stop();
                             _player?.Dispose();
