@@ -43,8 +43,8 @@ namespace PrismPlayer.Views
                 return true;
             });
 
-            KeyBindings.Add(Key.CursorLeft, Command.Left);
-            KeyBindings.Add(Key.CursorRight, Command.Right);
+            KeyBindings.Add(Key.CursorLeft.WithShift, Command.Left);
+            KeyBindings.Add(Key.CursorRight.WithShift, Command.Right);
         }
 
         public event Action<TrackBarChangedEventArgs>? TrackBarChanged;
