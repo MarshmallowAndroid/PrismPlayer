@@ -52,6 +52,14 @@ Open `PrismPlayer.sln`, then build `PrismPlayer`.
 
 ---
 
+## Libraries
+- [Terminal.Gui](https://github.com/gui-cs/Terminal.Gui) - TUI library
+- [NAudio](https://github.com/naudio/NAudio) - Audio library
+- [VorbisPizza](https://github.com/TechPizzaDev/VorbisPizza) - Fork of the [NVorbis](https://github.com/NVorbis/NVorbis) Ogg Vorbis decoder with updated implementation
+- [NAudio.Vorbis](https://github.com/naudio/Vorbis) - Wrapper for NVorbis slightly modified to work with VorbisPizza
+
+---
+
 ## Todo
 
 - [ ] Export support
