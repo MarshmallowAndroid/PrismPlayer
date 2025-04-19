@@ -11,6 +11,10 @@
     "DOA6": {
       "commandName": "Project",
       "commandLineArgs": "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Dead or Alive 6\\data\\0x272c6efb.file\""
+    },
+    "DOA5LR": {
+      "commandName": "Project",
+      "commandLineArgs": "\"C:\\Program Files (x86)\\Steam\\steamapps\\common\\Dead or Alive 5 Last Round\\DATA\\IVE@UH@NC]OG0D20D7R7]D61T{GD\""
     }
   }
 }

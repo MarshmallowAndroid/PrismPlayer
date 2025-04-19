@@ -27,17 +27,50 @@
                 offsets[i] = reader.ReadUInt32();
             }
 
-            Subfiles = new Subfile[fileCount];
-            for (int i = 0; i < fileCount; i++)
+            List<Subfile> subfiles = [];
+            for (int offsetsIndex = 0; offsetsIndex < fileCount; offsetsIndex++)
             {
                 uint length;
-                if (i < offsets.Length - 1)
-                    length = offsets[i + 1] - offsets[i];
+                if (offsetsIndex < offsets.Length - 1)
+                    length = offsets[offsetsIndex + 1] - offsets[offsetsIndex];
                 else
-                    length = fileSize - offsets[i];
+                    length = fileSize - offsets[offsetsIndex];
 
-                Subfiles[i] = new Subfile($"0x{i:x8}", offsets[i], length);
+                uint currentOffset = offsets[offsetsIndex];
+
+                reader.BaseStream.Position = currentOffset;
+
+                uint magic = reader.ReadUInt32();
+                if (magic == 0x4c535441)
+                {
+                    reader.BaseStream.Position = currentOffset + 0x14;
+                    uint kovsCount = reader.ReadUInt32();
+
+                    reader.BaseStream.Position = currentOffset + 0x2c;
+                    uint firstSuboffset = reader.ReadUInt32();
+                    uint firstLength = reader.ReadUInt32();
+
+                    if (kovsCount > 1)
+                    {
+                        subfiles.Add(new Subfile($"{offsetsIndex:d4}[0]", currentOffset + firstSuboffset, firstLength));
+
+                        reader.BaseStream.Position = currentOffset + 0x54;
+                        for (int kovsIndex = 1; kovsIndex < kovsCount; kovsIndex++)
+                        {
+                            uint suboffset = reader.ReadUInt32();
+                            uint sublength = reader.ReadUInt32();
+                            reader.BaseStream.Position += 0x20;
+                            subfiles.Add(new Subfile($"{offsetsIndex:d4}[{kovsIndex}]", currentOffset + suboffset, sublength));
+                        }
+                    }
+                    else
+                        subfiles.Add(new Subfile($"{offsetsIndex:d4}", currentOffset + firstSuboffset, firstLength));
+                }
+                else
+                    subfiles.Add(new Subfile($"{offsetsIndex:d4}", offsets[offsetsIndex], length));
             }
+
+            Subfiles = [.. subfiles];
         }
 
         public override Subfile[] Subfiles { get; }

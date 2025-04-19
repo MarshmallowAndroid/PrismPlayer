@@ -24,8 +24,7 @@ Must be a Katana Engine thing.
 The BGM sound bank for XVV is the second largest file in the `DX11_global_data\COMMON`
 directory, `b3c5a6c36e6b29127ab013fffe1d3d784198af2fc3e01f5274762f71fcedc8ea`.
 
-DOA5LR's sound banks mostly work, but some subfiles point to a header that references several KOVS streams,
-which I might try to support.
-Its files in the `DATA` and `DATA2` folder seem to consist entirely of sound banks.
+DOA5LR's sound banks have ATSL subfiles that contain several KOVS sub-subfiles.
+Files in the `DATA` and `DATA2` folder seem to consist entirely of sound banks.
 
 [^1]: [Publisher · KOEI TECMO GAMES CO., LTD. · SteamDB](https://steamdb.info/publisher/KOEI+TECMO+GAMES+CO.%2C+LTD./)
