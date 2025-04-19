@@ -10,7 +10,7 @@ namespace PrismPlayer.Players
         private readonly BankFile _bankFile;
 
         private LoopWaveStream? _loopWaveStream;
-        private Subfile? _currentBankFileInfo;
+        private Subfile? _currentSubfile;
 
         public BankPlayer(BankFile bankFile) : base()
         {
@@ -47,14 +47,14 @@ namespace PrismPlayer.Players
             }
         }
 
-        public void SetBankFileInfo(Subfile bankFileInfo)
+        public void SetSubfile(Subfile subfile)
         {
             base.Dispose();
             _waveStream?.Dispose();
 
-            _currentBankFileInfo = bankFileInfo;
+            _currentSubfile = subfile;
 
-            Stream oggStream = _bankFile.GetAudioStream(_currentBankFileInfo, out uint loopPoint, out uint _);
+            Stream oggStream = _bankFile.GetAudioStream(_currentSubfile, out uint loopPoint, out uint _);
 
             //FileStream test = File.OpenWrite("test.ogg");
             //oggStream.CopyTo(test);

@@ -39,12 +39,12 @@
             if (magic != 0x53564f4b) // KOVS
                 throw new Exception("Not a KOVS file.");
 
-            uint size = kovsReader.ReadUInt32();
+            uint oggSize = kovsReader.ReadUInt32();
             loopPoint = kovsReader.ReadUInt32();
             loopType = kovsReader.ReadUInt32();
             kovsReader.BaseStream.Position += 16;
 
-            int dataSize = (int)(size + (8 - size % 8 % 8)); // Align by 8 bytes.
+            int dataSize = (int)(oggSize + (8 - oggSize % 8 % 8)); // Align by 8 bytes.
 
             // KOVS streams XOR the first 256 bytes from 0-255
             // Unmasked data is Ogg Vorbis

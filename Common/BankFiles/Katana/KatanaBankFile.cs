@@ -26,7 +26,7 @@
 
             reader.BaseStream.Position = 0x88; // It seems like the subfiles always start here
 
-            List<Subfile> bankFileInfos = [];
+            List<Subfile> subfiles = [];
 
             // Go through all subfile headers
             do
@@ -42,17 +42,17 @@
                 uint unk5 = reader.ReadUInt32(); // At least 32 byte difference from dataLength, must be unaligned length with header
                 reader.BaseStream.Position += 0x0c;
 
-                bankFileInfos.Add(new($"0x{unk3:x8}", reader.BaseStream.Position, dataLength - 0x20));
+                subfiles.Add(new($"0x{unk3:x8}", reader.BaseStream.Position, dataLength - 0x20));
 
                 reader.BaseStream.Position += dataLength - 0x20;
 
             } while (reader.BaseStream.Position != reader.BaseStream.Length);
 
             // Basic encryption check
-            reader.BaseStream.Position = bankFileInfos[0].Offset;
+            reader.BaseStream.Position = subfiles[0].Offset;
             _encrypted = reader.ReadUInt32() != 0x53564f4b; // If the magic of the first subfile is not KOVS, then it must be encrypted
 
-            Subfiles = [.. bankFileInfos];
+            Subfiles = [.. subfiles];
         }
 
         public override Subfile[] Subfiles { get; }

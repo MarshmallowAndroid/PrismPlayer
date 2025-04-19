@@ -157,7 +157,7 @@ namespace PrismPlayer.Views
 
             Subfile selected = _bankFile.Subfiles[index];
 
-            bankPlayer.SetBankFileInfo(selected);
+            bankPlayer.SetSubfile(selected);
             bankPlayer.Play();
 
             _playerView?.UpdateInfoOneShot(selected.Name);
