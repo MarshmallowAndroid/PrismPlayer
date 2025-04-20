@@ -204,6 +204,7 @@ namespace PrismPlayer.Views
                 Normal = new Terminal.Gui.Attribute(Color.BrightCyan, ColorScheme?.Normal.Background ?? Color.Black)
             };
 
+            _playPause.Text = PlayText;
             _playPause.ColorScheme = new()
             {
                 Normal = new Terminal.Gui.Attribute(Color.BrightGreen, ColorScheme?.Normal.Background ?? Color.Black)

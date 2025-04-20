@@ -185,6 +185,7 @@ namespace PrismPlayer.Views
                 return;
             }
             _fileListView.SetSource([.. _bankFile.Subfiles]);
+            _fileListView.SelectedItem = 0;
             _player = new BankPlayer(_bankFile);
             _playerView.Initialize(_player);
             _updateTimer.Change(0, 33);
