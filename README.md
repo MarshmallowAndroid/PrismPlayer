@@ -34,10 +34,12 @@ have to use the `File > Open bank file...` menu in the interface.
 ## Controls
 Both keyboard and mouse input are supported.
 
-- To open the File menu, press `Alt`+`F`.  
-- Press `Tab` or the right arrow key to focus the next control.
-- Press `Shift`+`Tab` or the left arrow key to focus the previous control.
-- Press `Shift` with the left or right arrow keys to change the track bar value.
+- `Alt`+`F`: Open the File menu.
+- `Tab` or `Right Arrow`: Focus the next control.
+- `Shift`+`Tab` or `Left Arrow`: Focus the previous control.
+- `Shift` and `Left Arrow` or `Right Arrow`: Change the track bar value.
+- `Ctrl`+`E`: Export Ogg file.
+- `Ctrl`+`Shift`+`E`: Export as WAV file.
 
 ---
 

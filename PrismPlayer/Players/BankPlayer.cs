@@ -82,6 +82,42 @@ namespace PrismPlayer.Players
             _monitoredSampleProvider = new MonitoredSampleProvider(_waveStream.ToSampleProvider());
         }
 
+        public bool ExportCurrent(out string fileName, string type)
+        {
+            fileName = "";
+
+            if (_currentSubfile is null) return false;
+
+            fileName = $"{_currentSubfile.Name}.ogg";
+
+            Stream oggStream = _bankFile.GetAudioStream(_currentSubfile, out uint loopPoint, out uint _);
+
+            OutputDevice?.Pause();
+
+            if (type == "ogg")
+            {
+                using FileStream oggFileStream = File.OpenWrite(fileName);
+                oggStream.CopyTo(oggFileStream);
+                oggFileStream.Flush();
+                oggFileStream.Dispose();
+            }
+            else if (type == "wav")
+            {
+                VorbisWaveReader vorbisWaveReader = new(oggStream);
+                IWaveProvider target;
+                if (loopPoint == 0)
+                    target = vorbisWaveReader;
+                else
+                    target = new LoopSampleProvider(vorbisWaveReader, loopPoint, 0, 30000, 1).ToWaveProvider();
+                WaveFileWriter.CreateWaveFile(fileName, target);
+            }
+            else return false;
+
+            OutputDevice?.Play();
+
+            return true;
+        }
+
         public override void Play()
         {
             base.Dispose();

@@ -99,7 +99,6 @@ namespace PrismPlayer.Views
                             FileDialog fileDialog = new()
                             {
                                 Title = "Open bank file...",
-                                Text = "Select a Yawaraka Engine (Soft Engine) or Katana Engine bank file",
                                 OpenMode = OpenMode.File
                             };
                             if (_lastPath != string.Empty) fileDialog.Path  = _lastPath;
@@ -115,14 +114,32 @@ namespace PrismPlayer.Views
 
                                 _lastPath = fileDialog.Path ?? "";
                             }
-                        }),
+                        }, shortcutKey: Key.O.WithCtrl),
+                        new MenuItem("_Export Ogg Vorbis", "", () =>
+                        {
+                            if (_player is not BankPlayer bankPlayer) return;
+                            if (bankPlayer.ExportCurrent(out string fileName, "ogg"))
+                            {
+                                MessageBox.Query("Export complete", $"\n Exported file as {fileName} \n\n", "OK");
+                            }
+
+                        }, shortcutKey: Key.E.WithCtrl),
+                        new MenuItem("Export as _WAV", "", () =>
+                        {
+                            if (_player is not BankPlayer bankPlayer) return;
+                            if (bankPlayer.ExportCurrent(out string fileName, "wav"))
+                            {
+                                MessageBox.Query("Export complete", $"\n Exported file as {fileName} \n\n", "OK");
+                            }
+
+                        }, shortcutKey: Key.E.WithCtrl.WithAlt),
                         null!,
                         new MenuItem("_Quit", "", () =>
                         {
                             _player?.Stop();
                             _player?.Dispose();
                             Application.RequestStop();
-                        })
+                        }, shortcutKey: Application.QuitKey)
                     ])
                 ]
             };
