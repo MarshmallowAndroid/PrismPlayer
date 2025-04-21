@@ -1,13 +1,8 @@
 ﻿using NAudio.Wave;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Audio
 {
-    internal class LoopSampleProvider : ISampleProvider
+    public class LoopSampleProvider : ISampleProvider
     {
         private readonly WaveStream _source;
         private readonly long _loopStart;

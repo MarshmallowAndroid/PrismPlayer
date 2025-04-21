@@ -1,7 +1,4 @@
-﻿using NAudio.Wave;
-using PrismPlayer.Views;
-using System.Numerics;
-using System.Security.Cryptography;
+﻿using PrismPlayer.Views;
 using Terminal.Gui;
 
 namespace PrismPlayer

@@ -1,6 +1,4 @@
 ﻿using NAudio.Wave;
-using System;
-using System.Threading;
 
 namespace Common.Audio
 {
