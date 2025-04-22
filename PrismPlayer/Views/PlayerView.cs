@@ -9,8 +9,9 @@ namespace PrismPlayer.Views
         private const string PauseText = " ▼ ";
         private const string PreviousText = " ◄◄ ";
         private const string NextText = " ►► ";
-        private const string LoopOnText = " Loop: On ";
-        private const string LoopOffText = " Loop: Off ";
+        private const string LoopNormalText = " Loop: Normal ";
+        private const string LoopSeamlessText = " Loop: Seamless ";
+        private const string LoopDisabledText = " Loop: Disabled ";
 
         private readonly Label _name;
         private readonly Label _elapsed;
@@ -95,9 +96,9 @@ namespace PrismPlayer.Views
 
                 _player.PauseResume();
                 if (_player.PlaybackState == NAudio.Wave.PlaybackState.Paused)
-                    _playPause.Text = PauseText;
-                else
                     _playPause.Text = PlayText;
+                else
+                    _playPause.Text = PauseText;
             };
             _previous.Accepting += (s, e) =>
             {
@@ -112,7 +113,7 @@ namespace PrismPlayer.Views
                 if (_player is null) return;
 
                 _player.LoopEnabled = !_player.LoopEnabled;
-                _loop.Text = _player.LoopEnabled ? LoopOnText : LoopOffText;
+                _loop.Text = _player.LoopEnabled ? (_player.LoopStartPercent == 0f ? LoopNormalText : LoopSeamlessText) : LoopDisabledText;
                 _loopSetting = _player.LoopEnabled;
             };
 
@@ -204,7 +205,7 @@ namespace PrismPlayer.Views
                 Normal = new Terminal.Gui.Attribute(Color.BrightCyan, ColorScheme?.Normal.Background ?? Color.Black)
             };
 
-            _playPause.Text = PlayText;
+            _playPause.Text = PauseText;
             _playPause.ColorScheme = new()
             {
                 Normal = new Terminal.Gui.Attribute(Color.BrightGreen, ColorScheme?.Normal.Background ?? Color.Black)
@@ -212,7 +213,7 @@ namespace PrismPlayer.Views
             _previous.ColorScheme = _playPause.ColorScheme;
             _next.ColorScheme = _playPause.ColorScheme;
 
-            _loop.Text = _player.LoopEnabled ? LoopOnText : LoopOffText;
+            _loop.Text = _player.LoopEnabled ? (_player.LoopStartPercent == 0f ? LoopNormalText : LoopSeamlessText) : LoopDisabledText;
             _loop.ColorScheme = _playPause.ColorScheme;
 
             _volume.ColorScheme = new()
