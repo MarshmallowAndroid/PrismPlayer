@@ -63,6 +63,13 @@ namespace PrismPlayer.Players
                 OutputDevice?.Pause();
             else
                 OutputDevice?.Play();
+
+            if (_waveStream is null) return;
+            if (_waveStream.Position == _waveStream.Length)
+            {
+                _waveStream.Position = 0;
+                OutputDevice?.Play();
+            }
         }
 
         public virtual void Stop() => OutputDevice?.Stop();
