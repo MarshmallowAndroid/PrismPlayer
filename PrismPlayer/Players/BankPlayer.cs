@@ -88,7 +88,7 @@ namespace PrismPlayer.Players
 
             if (_currentSubfile is null) return false;
 
-            fileName = $"{_currentSubfile.Name}.ogg";
+            fileName = $"{_currentSubfile.Name}.{type}";
 
             Stream oggStream = _bankFile.GetAudioStream(_currentSubfile, out uint loopPoint, out uint _);
 
@@ -135,8 +135,7 @@ namespace PrismPlayer.Players
             else
                 OutputDevice.Init(_monitoredSampleProvider);
 
-
-            OutputDevice.Play();
+            base.Play();
         }
 
         public override void Dispose()
