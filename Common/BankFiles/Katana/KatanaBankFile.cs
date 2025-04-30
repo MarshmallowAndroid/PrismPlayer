@@ -44,7 +44,7 @@
 
                 subfiles.Add(new($"{subfiles.Count:d4}", reader.BaseStream.Position, dataLength - 0x20));
 
-                reader.BaseStream.Position += dataLength - 0x20;
+                reader.BaseStream.Position += dataLength - headerLength;
 
             } while (reader.BaseStream.Position != reader.BaseStream.Length);
 
