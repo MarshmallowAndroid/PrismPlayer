@@ -42,7 +42,7 @@
                 uint unk5 = reader.ReadUInt32(); // At least 32 byte difference from dataLength, must be unaligned length with header
                 reader.BaseStream.Position += 0x0c;
 
-                subfiles.Add(new($"0x{unk3:x8}", reader.BaseStream.Position, dataLength - 0x20));
+                subfiles.Add(new($"{subfiles.Count:d4}", reader.BaseStream.Position, dataLength - 0x20));
 
                 reader.BaseStream.Position += dataLength - 0x20;
 
