@@ -131,7 +131,7 @@ namespace Common.BankFiles.Katana
             // Reading must occur on 8-byte boundaries for the decryption to work properly
             // and we must abstract this from the base stream reading us
 
-            int positionAlign = (int)Position % 8; // To subtract from Position
+            int positionAlign = (int)Position % 8; // To subtract from Position if unaligned
             int countPadding = (8 - (count + positionAlign) % 8) % 8; // New 8-byte-aligned padding for count
 
             int read;
